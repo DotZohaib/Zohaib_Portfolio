@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { DayPicker } from "react-day-picker"
@@ -51,14 +52,22 @@ function Calendar({
         day_hidden: "invisible",
         ...classNames,
       }}
-      components={{
-        IconLeft: ({ className, ...props }) => (
-          <ChevronLeft className={cn("h-4 w-4", className)} {...props} />
-        ),
-        IconRight: ({ className, ...props }) => (
-          <ChevronRight className={cn("h-4 w-4", className)} {...props} />
-        ),
-      }}
+      components={
+        {
+          IconLeft: ({
+            className,
+            ...props
+          }: React.ComponentProps<"svg"> & { className?: string }) => (
+            <ChevronLeft className={cn("h-4 w-4", className)} {...props} />
+          ),
+          IconRight: ({
+            className,
+            ...props
+          }: React.ComponentProps<"svg"> & { className?: string }) => (
+            <ChevronRight className={cn("h-4 w-4", className)} {...props} />
+          ),
+        } as any
+      }
       {...props}
     />
   )
