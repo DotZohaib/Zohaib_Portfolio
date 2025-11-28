@@ -48,7 +48,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://your-domain.com",
+    url: "https://zohaibalidayo.vercel.app/",
     siteName: "Zohaib Ali Dayo - Portfolio",
     title: "Zohaib Ali Dayo - AI Engineer & Full Stack Developer",
     description: "AI Engineer specializing in Generative AI, Full Stack Development, and Data Science. Building intelligent solutions with modern technologies.",
@@ -93,7 +93,7 @@ export const metadata: Metadata = {
 
   // Alternate Languages
   alternates: {
-    canonical: "https://your-domain.com",
+    canonical: "https://zohaibalidayo.vercel.app/",
   },
 
   // App Metadata
@@ -157,7 +157,7 @@ export default function RootLayout({
               "@context": "https://schema.org",
               "@type": "Person",
               "name": "Zohaib Ali Dayo",
-              "url": "https://your-domain.com",
+              "url": "https://zohaibalidayo.vercel.app/",
               "image": "https://your-domain.com/zohaib.png",
               "jobTitle": "AI Engineer & Full Stack Developer",
               "worksFor": {
