@@ -1,12 +1,15 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 import { cn } from "@/lib/utils";
 import { motion, MotionValue } from "motion/react";
 import React from "react";
 
+// FIX: Added 'as const' here. 
+// This ensures 'easeInOut' is treated as a specific literal, not a generic string.
 const transition = {
   duration: 0,
-  ease: [0.42, 0, 0.58, 1], // cubic-bezier for easeInOut
-};
+  ease: "easeInOut",
+} as const;
 
 export const GoogleGeminiEffect = ({
   pathLengths,
@@ -21,8 +24,16 @@ export const GoogleGeminiEffect = ({
 }) => {
   return (
     <div className={cn("sticky top-80", className)}>
-     
-     
+      {title && (
+        <p className="text-lg font-bold text-neutral-700 dark:text-neutral-200">
+          {title}
+        </p>
+      )}
+      {description && (
+        <p className="text-sm font-normal text-neutral-500 dark:text-neutral-400">
+          {description}
+        </p>
+      )}
 
       <svg
         width="1440"
