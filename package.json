@@ -55,6 +55,7 @@
     "react-intersection-observer": "^10.0.0",
     "react-resizable-panels": "^3.0.6",
     "react-tsparticles": "^2.12.2",
+    "recharts": "^3.5.1",
     "simplex-noise": "^4.0.3",
     "tailwind-merge": "^3.3.1",
     "tailwindcss-animate": "^1.0.7",
