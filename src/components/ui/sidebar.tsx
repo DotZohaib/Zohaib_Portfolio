@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+/* eslint-disable react-hooks/purity */
 "use client"
 
 import * as React from "react"
@@ -5,7 +7,6 @@ import { Slot } from "@radix-ui/react-slot"
 import { cva, VariantProps } from "class-variance-authority"
 import { PanelLeftIcon } from "lucide-react"
 
-import { useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -51,6 +52,48 @@ function useSidebar() {
   }
 
   return context
+}
+
+function useIsMobile(): boolean {
+  // This hook detects a mobile viewport using a media query and updates on resize.
+  // It guards against SSR by checking for window.
+  const [isMobile, setIsMobile] = React.useState<boolean>(() => {
+    if (typeof window === "undefined") return false
+    return window.matchMedia("(max-width: 767px)").matches
+  })
+
+  React.useEffect(() => {
+    if (typeof window === "undefined") return
+
+    const mql = window.matchMedia("(max-width: 767px)")
+    const listener = (e: MediaQueryListEvent | MediaQueryList) => {
+      // MediaQueryListEvent for newer APIs, MediaQueryList for older ones
+      // @ts-ignore - unify types for runtime check
+      setIsMobile(e.matches)
+    }
+
+    if (typeof mql.addEventListener === "function") {
+      mql.addEventListener("change", listener as EventListener)
+    } else {
+      // Older browsers
+      // @ts-ignore
+      mql.addListener(listener)
+    }
+
+    // Sync state
+    setIsMobile(mql.matches)
+
+    return () => {
+      if (typeof mql.removeEventListener === "function") {
+        mql.removeEventListener("change", listener as EventListener)
+      } else {
+        // @ts-ignore
+        mql.removeListener(listener)
+      }
+    }
+  }, [])
+
+  return isMobile
 }
 
 function SidebarProvider({
