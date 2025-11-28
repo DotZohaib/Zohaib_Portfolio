@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Link Troubleshooting</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+        
+        header {
+            background: #1a2a6c;
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .problem-section {
+            background: #ffeaa7;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            border-left: 5px solid #e17055;
+        }
+        
+        .solution-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .solution-card {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .solution-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .solution-card h3 {
+            color: #1a2a6c;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .solution-card h3 i {
+            margin-right: 10px;
+            font-size: 1.5rem;
+        }
+        
+        .solution-card p {
+            margin-bottom: 15px;
+        }
+        
+        .btn {
+            display: inline-block;
+            background: #1a2a6c;
+            color: white;
+            text-decoration: none;
+            padding: 12px 25px;
+            border-radius: 50px;
+            font-weight: 600;
+            margin: 10px 5px;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        
+        .btn:hover {
+            background: #0d1b4d;
+            transform: translateY(-2px);
+        }
+        
+        .btn-success {
+            background: #00b894;
+        }
+        
+        .btn-success:hover {
+            background: #00a085;
+        }
+        
+        .btn-warning {
+            background: #fdcb6e;
+            color: #333;
+        }
+        
+        .btn-warning:hover {
+            background: #fdbb2d;
+        }
+        
+        .email-display {
+            background: #2d3436;
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 1.2rem;
+            text-align: center;
+            margin: 15px 0;
+            display: none;
+        }
+        
+        .test-section {
+            background: #dfe6e9;
+            padding: 25px;
+            border-radius: 10px;
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        .test-section h2 {
+            color: #1a2a6c;
+            margin-bottom: 20px;
+        }
+        
+        .code-block {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            margin: 15px 0;
+            overflow-x: auto;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            color: white;
+            font-size: 0.9rem;
+        }
+        
+        .icon {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            background: #1a2a6c;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 40px;
+            margin-right: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .solution-section {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Email Link Troubleshooting</h1>
+            <p class="subtitle">Solutions for when mailto links don't work</p>
+        </header>
+        
+        <div class="content">
+            <div class="problem-section">
+                <h2>Problem: Email link not opening email client</h2>
+                <p>Your mailto link isn't working because of one of these common issues:</p>
+                <ul>
+                    <li>No default email client configured on your device</li>
+                    <li>Browser restrictions or security settings</li>
+                    <li>Corporate network policies blocking mailto links</li>
+                    <li>Outdated browser or operating system</li>
+                </ul>
+            </div>
+            
+            <h2>Try These Solutions</h2>
+            <div class="solution-section">
+                <div class="solution-card">
+                    <h3><span class="icon">1</span> Enhanced Mailto Link</h3>
+                    <p>This version includes subject and body text, which sometimes helps trigger the email client.</p>
+                    <a href="mailto:zuhaibalid@gmail.com?subject=Contact%20Request&body=Hello%20Zuhaib,%20I%20would%20like%20to%20get%20in%20touch." class="btn">Try Enhanced Mailto Link</a>
+                </div>
+                
+                <div class="solution-card">
+                    <h3><span class="icon">2</span> Copy Email Address</h3>
+                    <p>Manually copy the email address and paste it into your email client.</p>
+                    <button class="btn btn-success" onclick="copyEmail()">Copy Email Address</button>
+                    <div id="emailDisplay" class="email-display">zuhaibalid@gmail.com</div>
+                </div>
+                
+                <div class="solution-card">
+                    <h3><span class="icon">3</span> Try Different Browser</h3>
+                    <p>Mailto links sometimes work better in different browsers. Try opening this page in Chrome, Firefox, or Edge.</p>
+                    <button class="btn btn-warning" onclick="showBrowserInstructions()">Browser Instructions</button>
+                    <div id="browserInstructions" class="email-display">
+                        <p>1. Right-click the link and select "Copy link address"</p>
+                        <p>2. Paste it into your browser's address bar</p>
+                        <p>3. Press Enter to trigger the email client</p>
+                    </div>
+                </div>
+                
+                <div class="solution-card">
+                    <h3><span class="icon">4</span> Direct Gmail Link</h3>
+                    <p>This creates a direct link to compose an email in Gmail (requires you to be logged in).</p>
+                    <a href="https://mail.google.com/mail/?view=cm&fs=1&to=zuhaibalid@gmail.com&su=Contact%20Request&body=Hello%20Zuhaib," target="_blank" class="btn">Open in Gmail</a>
+                </div>
+            </div>
+            
+            <div class="test-section">
+                <h2>Test Your Original Code</h2>
+                <p>Here's your original code for testing:</p>
+                <div class="code-block">
+                    &lt;!DOCTYPE html&gt;<br>
+                    &lt;html lang="en"&gt;<br>
+                    &lt;head&gt;<br>
+                    &nbsp;&nbsp;&lt;meta charset="UTF-8"&gt;<br>
+                    &nbsp;&nbsp;&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;<br>
+                    &nbsp;&nbsp;&lt;title&gt;Document&lt;/title&gt;<br>
+                    &lt;/head&gt;<br>
+                    &lt;body&gt;<br>
+                    &nbsp;&nbsp;&lt;h1&gt;Click &lt;a href="mailto:zuhaibalid@gmail.com"&gt;Email me&lt;/a&gt;&lt;/h1&gt;<br>
+                    &lt;/body&gt;<br>
+                    &lt;/html&gt;
+                </div>
+                <p>Test if it works now:</p>
+                <a href="mailto:zuhaibalid@gmail.com" class="btn">Email me</a>
+            </div>
+            
+            <div class="solution-card" style="grid-column: 1 / -1; margin-top: 20px;">
+                <h3>Manual Setup Instructions</h3>
+                <p>If nothing works, you may need to set up a default email client:</p>
+                <ul>
+                    <li><strong>Windows:</strong> Go to Settings > Apps > Default apps > Email, and choose your preferred email client</li>
+                    <li><strong>Mac:</strong> Go to Mail > Preferences > General > Default email reader</li>
+                    <li><strong>Chrome:</strong> Type chrome://settings/handlers in address bar and ensure mailto is allowed</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <p>Email Link Troubleshooting &copy; 2023 | zuhaibalid@gmail.com</p>
+    </footer>
+
+    <script>
+        function copyEmail() {
+            const email = "zuhaibalid@gmail.com";
+            navigator.clipboard.writeText(email).then(function() {
+                const display = document.getElementById("emailDisplay");
+                display.style.display = "block";
+                setTimeout(() => {
+                    alert("Email address copied to clipboard: " + email);
+                }, 300);
+            }, function() {
+                // Fallback for older browsers
+                const textArea = document.createElement("textarea");
+                textArea.value = email;
+                document.body.appendChild(textArea);
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    const display = document.getElementById("emailDisplay");
+                    display.style.display = "block";
+                    alert("Email address copied to clipboard: " + email);
+                } catch (err) {
+                    alert("Failed to copy email address. Please manually copy: " + email);
+                }
+                document.body.removeChild(textArea);
+            });
+        }
+        
+        function showBrowserInstructions() {
+            const instructions = document.getElementById("browserInstructions");
+            if (instructions.style.display === "none" || instructions.style.display === "") {
+                instructions.style.display = "block";
+            } else {
+                instructions.style.display = "none";
+            }
+        }
+        
+        // Initialize display states
+        document.getElementById("emailDisplay").style.display = "none";
+        document.getElementById("browserInstructions").style.display = "none";
+    </script>
+</body>
+</html>
