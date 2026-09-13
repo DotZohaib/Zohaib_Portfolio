@@ -504,7 +504,7 @@ export default function HeroMain() {
                 <motion.a
                   whileHover={{ scale: 1.05, borderColor: "#3b82f6" }}
                   whileTap={{ scale: 0.95 }}
-                  href="https://codewithzuhaib.vercel.app/"
+                  href="https://dotzohaibedutech.vercel.app/"
                   target="_blank"
                   rel="noopener noreferrer"
                   // MODIFICATION: Responsive classes for padding, width, and text size.
