@@ -251,45 +251,6 @@ export function Experience() {
           </ol>
         </div>
 
-        {/* Education + certifications */}
-        <div className="mt-20 grid gap-6 lg:grid-cols-5">
-          <motion.div {...reveal(0)} className="lg:col-span-2">
-            <Card className="p-6 md:p-8 h-full glass-morphism bg-gradient-to-br from-chart-1/10 to-chart-3/10">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
-                  <GraduationCap className="w-6 h-6 text-primary" />
-                </div>
-                <h3 className="text-xl font-bold" style={{ fontFamily: 'var(--font-display)' }}>Education</h3>
-              </div>
-              <p className="font-semibold">{education.degree}</p>
-              <p className="text-sm text-muted-foreground">{education.school}</p>
-              <p className="text-sm text-muted-foreground mt-1">{education.period} · Focus: {education.focus}</p>
-            </Card>
-          </motion.div>
-
-          <motion.div {...reveal(1)} className="lg:col-span-3">
-            <Card className="p-6 md:p-8 h-full glass-morphism bg-gradient-to-br from-chart-2/10 to-chart-4/10">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
-                  <Award className="w-6 h-6 text-primary" />
-                </div>
-                <h3 className="text-xl font-bold" style={{ fontFamily: 'var(--font-display)' }}>Certifications</h3>
-              </div>
-              <ul className="space-y-3">
-                {certifications.map((c) => (
-                  <li key={c.name} className="flex items-start justify-between gap-4 text-sm md:text-base">
-                    <span className="min-w-0">
-                      <span className="font-medium">{c.name}</span>
-                      <span className="block text-sm text-muted-foreground">{c.issuer}</span>
-                    </span>
-                    <span className="text-sm text-muted-foreground shrink-0">{c.year}</span>
-                  </li>
-                ))}
-              </ul>
-            </Card>
-          </motion.div>
-        </div>
-
         <motion.div {...reveal(0)} className="mt-12 flex justify-center">
           <Button asChild variant="outline" className="hover-elevate active-elevate-2">
             <a href={GITHUB_PROFILE} target="_blank" rel="noopener noreferrer">
