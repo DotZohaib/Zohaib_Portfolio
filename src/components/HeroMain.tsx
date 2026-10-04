@@ -490,7 +490,7 @@ export default function HeroMain() {
                     boxShadow: "0 0 40px rgba(59, 130, 246, 0.4)",
                   }}
                   whileTap={{ scale: 0.95 }}
-                  href="/DotZohaibResume.pdf" // Recommended: Use a mailto link
+                  href="/Zohaib_Ali_Dayo_CV.pdf" // Recommended: Use a mailto link
                   target="_blank"
                   rel="noopener noreferrer"
                   // MODIFICATION: Responsive classes for padding, width, and text size.
