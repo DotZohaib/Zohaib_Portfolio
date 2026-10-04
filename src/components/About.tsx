@@ -490,9 +490,10 @@ export function About() {
   return (
     // [FIX] Changed <section> to <div> to match opening tag
     <div
-      ref={containerRef}
-      className="relative min-h-screen overflow-hidden bg-gradient-to-br from-background via-background to-primary/5 p-4 md:p-8" // Added padding
-    >
+  id="about"
+  ref={containerRef}
+  className="relative min-h-screen overflow-hidden bg-gradient-to-br from-background via-background to-primary/5 p-4 md:p-8"
+>
       {/* Canvas Background */}
       <canvas
         ref={canvasRef}
