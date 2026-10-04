@@ -14,7 +14,139 @@ import {
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Award, Brain, Cloud, Code2, Database, BarChart3, PieChart, GraduationCap, Calendar, ExternalLink } from 'lucide-react';
-import { AmbientNetwork } from './projects';
+
+/* ---------- Ambient canvas ---------- */
+/**
+ * Subtle particle network drawn behind section content.
+ * Colors are read from the site's own tokens (text-primary / text-chart-2),
+ * so it follows the existing theme. Pointer-transparent, pauses off-screen,
+ * and renders a single static frame under prefers-reduced-motion.
+ */
+function AmbientNetwork({ className = '' }: { className?: string }) {
+  const canvasRef = React.useRef<HTMLCanvasElement>(null);
+  const probeA = React.useRef<HTMLSpanElement>(null);
+  const probeB = React.useRef<HTMLSpanElement>(null);
+
+  React.useEffect(() => {
+    const canvas = canvasRef.current;
+    const host = canvas?.parentElement?.parentElement;
+    const ctx = canvas?.getContext('2d');
+    if (!canvas || !host || !ctx) return;
+
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    type P = { x: number; y: number; vx: number; vy: number };
+    let pts: P[] = [];
+    let w = 0, h = 0, raf = 0, visible = true;
+    const pointer = { x: -9999, y: -9999 };
+    let colA = '', colB = '';
+
+    const readColors = () => {
+      if (probeA.current) colA = getComputedStyle(probeA.current).color;
+      if (probeB.current) colB = getComputedStyle(probeB.current).color;
+    };
+
+    const draw = (step: boolean) => {
+      ctx.clearRect(0, 0, w, h);
+      if (step) {
+        for (const p of pts) {
+          p.x += p.vx;
+          p.y += p.vy;
+          if (p.x < 0 || p.x > w) p.vx *= -1;
+          if (p.y < 0 || p.y > h) p.vy *= -1;
+        }
+      }
+      ctx.lineWidth = 1;
+      for (let i = 0; i < pts.length; i++) {
+        const a = pts[i];
+        for (let j = i + 1; j < pts.length; j++) {
+          const b = pts[j];
+          const d = Math.hypot(a.x - b.x, a.y - b.y);
+          if (d < 120) {
+            ctx.globalAlpha = (1 - d / 120) * 0.18;
+            ctx.strokeStyle = colA;
+            ctx.beginPath();
+            ctx.moveTo(a.x, a.y);
+            ctx.lineTo(b.x, b.y);
+            ctx.stroke();
+          }
+        }
+        const dp = Math.hypot(a.x - pointer.x, a.y - pointer.y);
+        if (dp < 160) {
+          ctx.globalAlpha = (1 - dp / 160) * 0.35;
+          ctx.strokeStyle = colB;
+          ctx.beginPath();
+          ctx.moveTo(a.x, a.y);
+          ctx.lineTo(pointer.x, pointer.y);
+          ctx.stroke();
+        }
+        ctx.globalAlpha = 0.45;
+        ctx.fillStyle = colA;
+        ctx.beginPath();
+        ctx.arc(a.x, a.y, 1.4, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+    };
+
+    const resize = () => {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      w = host.clientWidth;
+      h = host.clientHeight;
+      canvas.width = w * dpr;
+      canvas.height = h * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const count = Math.min(60, Math.floor((w * h) / 22000));
+      pts = Array.from({ length: count }, () => ({
+        x: Math.random() * w,
+        y: Math.random() * h,
+        vx: (Math.random() - 0.5) * 0.25,
+        vy: (Math.random() - 0.5) * 0.25,
+      }));
+      readColors();
+      draw(false);
+    };
+
+    const loop = () => {
+      if (visible && !document.hidden) draw(true);
+      raf = requestAnimationFrame(loop);
+    };
+    const onMove = (e: PointerEvent) => {
+      const r = host.getBoundingClientRect();
+      pointer.x = e.clientX - r.left;
+      pointer.y = e.clientY - r.top;
+    };
+    const onLeave = () => { pointer.x = pointer.y = -9999; };
+
+    resize();
+    const ro = new ResizeObserver(resize);
+    ro.observe(host);
+    const io = new IntersectionObserver(([e]) => { visible = e.isIntersecting; });
+    io.observe(host);
+
+    if (!reduce) {
+      host.addEventListener('pointermove', onMove, { passive: true });
+      host.addEventListener('pointerleave', onLeave, { passive: true });
+      raf = requestAnimationFrame(loop);
+    }
+
+    return () => {
+      cancelAnimationFrame(raf);
+      ro.disconnect();
+      io.disconnect();
+      host.removeEventListener('pointermove', onMove);
+      host.removeEventListener('pointerleave', onLeave);
+    };
+  }, []);
+
+  return (
+    <div aria-hidden="true" className={`pointer-events-none absolute inset-0 ${className}`}>
+      <span ref={probeA} className="hidden text-primary" />
+      <span ref={probeB} className="hidden text-chart-2" />
+      <canvas ref={canvasRef} className="h-full w-full" />
+    </div>
+  );
+}
+
 
 /* ---------- Data ---------- */
 // Sources: CV (primary) → existing portfolio data.
