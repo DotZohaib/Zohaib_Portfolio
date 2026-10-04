@@ -371,10 +371,11 @@ export default function HeroMain() {
 
   
   return (
-    <div
-      ref={containerRef}
-      className="relative min-h-screen overflow-hidden bg-gradient-to-br from-background via-background to-primary/5"
-    >
+   <div
+  id="home"
+  ref={containerRef}
+  className="relative min-h-screen overflow-hidden bg-gradient-to-br from-background via-background to-primary/5"
+>
       {/* Canvas Background */}
       <canvas
         ref={canvasRef}
