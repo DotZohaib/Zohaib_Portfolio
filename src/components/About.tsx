@@ -1,732 +1,423 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable react-hooks/set-state-in-effect */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
-import { motion, animate, Variants } from "framer-motion";
-import { useInView } from "react-intersection-observer";
-import React, { useEffect, useRef, useState } from "react";
-import { Card } from "@/components/ui/card";
-import {
-  Users,
-  TrendingUp,
-  Award,
-  Zap,
-  Sparkles,
-  Cpu,
-  Network,
-  Rocket,
-  Code,
-  Database,
-  Brain,
-  Cloud,
-} from "lucide-react";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+import React from 'react';
+import { animate, motion, useMotionValue, useReducedMotion, useInView } from 'framer-motion';
+import { Card } from '@/components/ui/card';
+import { Brain, Rocket, GraduationCap, MapPin, BookOpen, Layers, CheckCircle2, Hammer, Presentation, Globe2 } from 'lucide-react';
 
-// Register ScrollTrigger plugin
-if (typeof window !== "undefined") {
-  gsap.registerPlugin(ScrollTrigger);
-}
+/**
+ * Subtle particle network drawn behind section content.
+ * Colors are read from the site's own tokens (text-primary / text-chart-2),
+ * so it follows the existing theme. Pointer-transparent, pauses off-screen,
+ * and renders a single static frame under prefers-reduced-motion.
+ */
+function AmbientNetwork({ className = '' }: { className?: string }) {
+  const canvasRef = React.useRef<HTMLCanvasElement>(null);
+  const probeA = React.useRef<HTMLSpanElement>(null);
+  const probeB = React.useRef<HTMLSpanElement>(null);
 
-// --- CONSTANTS (Moved outside component) ---
-
-const stats = [
-  {
-    icon: Users,
-    label: "Client Satisfaction",
-    value: "70%",
-    increase: "Increased",
-    color: "text-blue-600",
-    bgColor: "from-blue-100 to-blue-200",
-    borderColor: "border-blue-200",
-  },
-  {
-    icon: TrendingUp,
-    label: "Model Accuracy",
-    value: "35%",
-    increase: "Improved",
-    color: "text-emerald-600",
-    bgColor: "from-emerald-100 to-emerald-200",
-    borderColor: "border-emerald-200",
-  },
-  {
-    icon: Award,
-    label: "User Experience",
-    value: "80%",
-    increase: "Enhanced",
-    color: "text-purple-600",
-    bgColor: "from-purple-100 to-purple-200",
-    borderColor: "border-purple-200",
-  },
-  {
-    icon: Zap,
-    label: "Project Delivery",
-    value: "100%",
-    increase: "On-time",
-    color: "text-amber-600",
-    bgColor: "from-amber-100 to-amber-200",
-    borderColor: "border-amber-200",
-  },
-];
-
-// [FIX] Define the missing roles for the typing effect
-const roles = [
-  "Software Engineer",
-  "Full-Stack Developer",
-  "Data Scientist",
-  "AI Enthusiast",
-];
-
-// [FIX] Define all missing animation variants
-const animationVariants: Record<string, any> = { // <--- Use a loose type to allow state maps like 'hidden'/'visible'
-  fadeInUp: {
-    hidden: { opacity: 0, y: 30 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.6, ease: "easeOut" },
-    },
-  },
-  fadeInRight: {
-    hidden: { opacity: 0, x: -30 },
-    visible: {
-      opacity: 1,
-      x: 0,
-      transition: { duration: 0.6, ease: "easeOut" },
-    },
-  },
-  scaleIn: {
-    hidden: { opacity: 0, scale: 0.9 },
-    visible: {
-      opacity: 1,
-      scale: 1,
-      transition: { duration: 0.5, ease: "easeOut" },
-    },
-  },
-  staggerContainer: {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
-  },
-  staggerItem: {
-    hidden: { opacity: 0, y: 15 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.4, ease: "easeOut" },
-    },
-  },
-};
-
-// --- [IMPROVEMENT] Particle Class (Moved outside component) ---
-// This allows for proper typing of refs and avoids re-declaration
-class Particle {
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-  radius: number;
-  baseOpacity: number;
-  opacity: number;
-  pulsePhase: number;
-  canvasWidth: number;
-  canvasHeight: number;
-  ctx: CanvasRenderingContext2D;
-
-  constructor(
-    canvasWidth: number,
-    canvasHeight: number,
-    ctx: CanvasRenderingContext2D
-  ) {
-    this.canvasWidth = canvasWidth;
-    this.canvasHeight = canvasHeight;
-    this.ctx = ctx;
-
-    // Initialize all properties
-    this.x = 0;
-    this.y = 0;
-    this.vx = 0;
-    this.vy = 0;
-    this.radius = 0;
-    this.baseOpacity = 0;
-    this.opacity = 0;
-    this.pulsePhase = 0;
-    this.reset();
-  }
-
-  reset() {
-    this.x = Math.random() * this.canvasWidth;
-    this.y = Math.random() * this.canvasHeight;
-    this.vx = (Math.random() - 0.5) * 1.5;
-    this.vy = (Math.random() - 0.5) * 1.5;
-    this.radius = Math.random() * 2.5 + 0.5;
-    this.baseOpacity = Math.random() * 0.6 + 0.2;
-    this.opacity = this.baseOpacity;
-    this.pulsePhase = Math.random() * Math.PI * 2;
-  }
-
-  update(mouseX: number, mouseY: number) {
-    this.x += this.vx;
-    this.y += this.vy;
-    this.pulsePhase += 0.05;
-
-    // Mouse repulsion
-    const dx = this.x - mouseX;
-    const dy = this.y - mouseY;
-    const distance = Math.sqrt(dx * dx + dy * dy);
-
-    if (distance < 150) {
-      const angle = Math.atan2(dy, dx);
-      this.vx += Math.cos(angle) * 0.3;
-      this.vy += Math.sin(angle) * 0.3;
-    }
-
-    // Boundary wrap
-    if (this.x < 0) this.x = this.canvasWidth;
-    if (this.x > this.canvasWidth) this.x = 0;
-    if (this.y < 0) this.y = this.canvasHeight;
-    if (this.y > this.canvasHeight) this.y = 0;
-
-    // Damping
-    this.vx *= 0.98;
-    this.vy *= 0.98;
-
-    // Pulsing opacity
-    this.opacity = this.baseOpacity + Math.sin(this.pulsePhase) * 0.3;
-  }
-
-  draw() {
-    const gradient = this.ctx.createRadialGradient(
-      this.x,
-      this.y,
-      0,
-      this.x,
-      this.y,
-      this.radius * 3
-    );
-    gradient.addColorStop(0, `rgba(59, 130, 246, ${this.opacity})`);
-    gradient.addColorStop(1, `rgba(6, 182, 212, ${this.opacity * 0.2})`);
-
-    this.ctx.fillStyle = gradient;
-    this.ctx.beginPath();
-    this.ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-    this.ctx.fill();
-
-    // Glow effect
-    this.ctx.strokeStyle = `rgba(6, 182, 212, ${this.opacity * 0.5})`;
-    this.ctx.lineWidth = 0.5;
-    this.ctx.beginPath();
-    this.ctx.arc(this.x, this.y, this.radius + 2, 0, Math.PI * 2);
-    this.ctx.stroke();
-  }
-}
-
-// --- [FIX] Missing Component: AnimatedStatValue ---
-interface AnimatedStatValueProps {
-  value: string;
-}
-
-const AnimatedStatValue: React.FC<AnimatedStatValueProps> = ({ value }) => {
-  const [displayValue, setDisplayValue] = useState(0);
-  const { ref, inView } = useInView({ triggerOnce: true, threshold: 0.5 });
-  const nodeRef = useRef<HTMLSpanElement>(null);
-
-  const numericValue = parseFloat(value.replace("%", ""));
-  const suffix = value.includes("%") ? "%" : "";
-
-  useEffect(() => {
-    if (inView && nodeRef.current) {
-      const controls = animate(0, numericValue, {
-        duration: 2,
-        ease: "easeOut",
-        onUpdate(latest) {
-          setDisplayValue(parseFloat(latest.toFixed(0)));
-        },
-      });
-      return () => controls.stop();
-    }
-  }, [inView, numericValue]);
-
-  return (
-    <span ref={ref}>
-      <span ref={nodeRef}>{displayValue}</span>
-      {suffix}
-    </span>
-  );
-};
-
-// --- [FIX] Missing Component: AnimatedCard ---
-interface AnimatedCardProps {
-  children: React.ReactNode;
-  delay?: number;
-  className?: string;
-}
-
-const AnimatedCard: React.FC<AnimatedCardProps> = ({
-  children,
-  delay = 0,
-  className = "",
-}) => {
-  const { ref, inView } = useInView({
-    triggerOnce: true,
-    threshold: 0.1, // Animate when 10% of the card is visible
-  });
-
-  return (
-    <motion.div
-      ref={ref}
-      variants={animationVariants.scaleIn}
-      initial="hidden"
-      animate={inView ? "visible" : "hidden"}
-      transition={{ duration: 0.5, delay: delay }}
-      className={className}
-    >
-      {children}
-    </motion.div>
-  );
-};
-
-// --- Main Component ---
-export function About() {
-  const [currentRole, setCurrentRole] = useState<number>(0);
-  const [displayText, setDisplayText] = useState<string>("");
-  const [isDeleting, setIsDeleting] = useState<boolean>(false);
-  const [charIndex, setCharIndex] = useState<number>(0);
-
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null); // Used for GSAP context
-  const imageRef = useRef<HTMLDivElement>(null);
-  const spotlightRef = useRef<HTMLDivElement>(null);
-
-  // [IMPROVEMENT] Correctly typed ref now that Particle class is external
-  const particlesRef = useRef<Particle[]>([]);
-  const animationIdRef = useRef<number | null>(null);
-
-  // [FIX] Define refs and inView state for section titles
-  const { ref: titleRef, inView: titleInView } = useInView({
-    triggerOnce: true,
-    threshold: 0.1,
-  });
-  const { ref: statsTitleRef, inView: statsInView } = useInView({
-    triggerOnce: true,
-    threshold: 0.1,
-  });
-
-  // --- Canvas Animation (useEffect) ---
-  useEffect(() => {
+  React.useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+    const host = canvas?.parentElement?.parentElement;
+    const ctx = canvas?.getContext('2d');
+    if (!canvas || !host || !ctx) return;
 
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    const particleCount = 80;
-    const mousePos = { x: canvas.width / 2, y: canvas.height / 2 };
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    type P = { x: number; y: number; vx: number; vy: number };
+    let pts: P[] = [];
+    let w = 0, h = 0, raf = 0, visible = true;
+    const pointer = { x: -9999, y: -9999 };
+    let colA = '', colB = '';
 
-    // Initialize particles
-    particlesRef.current = [];
-    for (let i = 0; i < particleCount; i++) {
-      particlesRef.current.push(new Particle(canvas.width, canvas.height, ctx));
-    }
+    const readColors = () => {
+      if (probeA.current) colA = getComputedStyle(probeA.current).color;
+      if (probeB.current) colB = getComputedStyle(probeB.current).color;
+    };
 
-    const animateParticles = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      particlesRef.current.forEach((p) => {
-        p.update(mousePos.x, mousePos.y);
-        p.draw();
-      });
-
-      // Draw connecting lines
-      for (let i = 0; i < particlesRef.current.length; i++) {
-        for (let j = i + 1; j < particlesRef.current.length; j++) {
-          const dx = particlesRef.current[i].x - particlesRef.current[j].x;
-          const dy = particlesRef.current[i].y - particlesRef.current[j].y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-
-          if (dist < 200) {
-            const opacity = (1 - dist / 200) * 0.15;
-            ctx.strokeStyle = `rgba(59, 130, 246, ${opacity})`;
-            ctx.lineWidth = 1.5;
+    const draw = (step: boolean) => {
+      ctx.clearRect(0, 0, w, h);
+      if (step) {
+        for (const p of pts) {
+          p.x += p.vx;
+          p.y += p.vy;
+          if (p.x < 0 || p.x > w) p.vx *= -1;
+          if (p.y < 0 || p.y > h) p.vy *= -1;
+        }
+      }
+      ctx.lineWidth = 1;
+      for (let i = 0; i < pts.length; i++) {
+        const a = pts[i];
+        for (let j = i + 1; j < pts.length; j++) {
+          const b = pts[j];
+          const d = Math.hypot(a.x - b.x, a.y - b.y);
+          if (d < 120) {
+            ctx.globalAlpha = (1 - d / 120) * 0.18;
+            ctx.strokeStyle = colA;
             ctx.beginPath();
-            ctx.moveTo(particlesRef.current[i].x, particlesRef.current[i].y);
-            ctx.lineTo(particlesRef.current[j].x, particlesRef.current[j].y);
+            ctx.moveTo(a.x, a.y);
+            ctx.lineTo(b.x, b.y);
             ctx.stroke();
           }
         }
-      }
-      animationIdRef.current = requestAnimationFrame(animateParticles);
-    };
-    animateParticles();
-
-    const handleMouseMove = (e: MouseEvent) => {
-      mousePos.x = e.clientX;
-      mousePos.y = e.clientY;
-    };
-
-    const handleResize = () => {
-      if (canvasRef.current && ctx) {
-        canvasRef.current.width = window.innerWidth;
-        canvasRef.current.height = window.innerHeight;
-        // Re-initialize particles with new dimensions
-        particlesRef.current = [];
-        for (let i = 0; i < particleCount; i++) {
-          particlesRef.current.push(
-            new Particle(canvasRef.current.width, canvasRef.current.height, ctx)
-          );
+        const dp = Math.hypot(a.x - pointer.x, a.y - pointer.y);
+        if (dp < 160) {
+          ctx.globalAlpha = (1 - dp / 160) * 0.35;
+          ctx.strokeStyle = colB;
+          ctx.beginPath();
+          ctx.moveTo(a.x, a.y);
+          ctx.lineTo(pointer.x, pointer.y);
+          ctx.stroke();
         }
+        ctx.globalAlpha = 0.45;
+        ctx.fillStyle = colA;
+        ctx.beginPath();
+        ctx.arc(a.x, a.y, 1.4, 0, Math.PI * 2);
+        ctx.fill();
       }
+      ctx.globalAlpha = 1;
     };
 
-    window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("resize", handleResize);
-
-    return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("resize", handleResize);
-      if (animationIdRef.current) {
-        cancelAnimationFrame(animationIdRef.current);
-      }
+    const resize = () => {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      w = host.clientWidth;
+      h = host.clientHeight;
+      canvas.width = w * dpr;
+      canvas.height = h * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const count = Math.min(60, Math.floor((w * h) / 22000));
+      pts = Array.from({ length: count }, () => ({
+        x: Math.random() * w,
+        y: Math.random() * h,
+        vx: (Math.random() - 0.5) * 0.25,
+        vy: (Math.random() - 0.5) * 0.25,
+      }));
+      readColors();
+      draw(false);
     };
-  }, []); // Empty dependency array ensures this runs once
 
-  // --- [IMPROVEMENT] GSAP Animations with Context ---
-  useEffect(() => {
-    // Use GSAP context for safe setup and cleanup
-    const ctx = gsap.context(() => {
-      // Spotlight Animation
-      const handleMouseMoveSpotlight = (e: MouseEvent) => {
-        gsap.to(spotlightRef.current, {
-          x: e.clientX,
-          y: e.clientY,
-          xPercent: -50,
-          yPercent: -50,
-          duration: 0.8,
-          ease: "power3.out",
-        });
-      };
-      window.addEventListener("mousemove", handleMouseMoveSpotlight);
+    const loop = () => {
+      if (visible && !document.hidden) draw(true);
+      raf = requestAnimationFrame(loop);
+    };
+    const onMove = (e: PointerEvent) => {
+      const r = host.getBoundingClientRect();
+      pointer.x = e.clientX - r.left;
+      pointer.y = e.clientY - r.top;
+    };
+    const onLeave = () => { pointer.x = pointer.y = -9999; };
 
-      // Image Parallax Animation
-      if (imageRef.current) {
-        // 1. Initial entrance animation
-        gsap
-          .timeline()
-          .fromTo(
-            imageRef.current,
-            { opacity: 0, scale: 0.6, y: 80, filter: "blur(20px)" },
-            {
-              opacity: 1,
-              scale: 1,
-              y: 0,
-              filter: "blur(0px)",
-              duration: 1.2,
-              ease: "power3.out",
-            }
-          );
+    resize();
+    const ro = new ResizeObserver(resize);
+    ro.observe(host);
+    const io = new IntersectionObserver(([e]) => { visible = e.isIntersecting; });
+    io.observe(host);
 
-        // 2. Parallax mouse-tracking animation
-        const handleMouseMoveParallax = (e: MouseEvent) => {
-          if (!imageRef.current) return;
-          const xPos = (e.clientX / window.innerWidth - 0.5) * 40;
-          const yPos = (e.clientY / window.innerHeight - 0.5) * 40;
-          gsap.to(imageRef.current, {
-            x: xPos,
-            y: yPos,
-            rotateX: -yPos / 2,
-            rotateY: xPos / 2,
-            duration: 1,
-            ease: "power2.out",
-          });
-        };
-        window.addEventListener("mousemove", handleMouseMoveParallax);
-
-        // Return cleanup function for *this context*
-        return () => {
-          window.removeEventListener("mousemove", handleMouseMoveSpotlight);
-          window.removeEventListener("mousemove", handleMouseMoveParallax);
-          gsap.killTweensOf(spotlightRef.current); // Kill animations on cleanup
-          gsap.killTweensOf(imageRef.current);
-        };
-      }
-    }, containerRef); // Scope context to the main container
-
-    return () => ctx.revert(); // Cleanup all animations created in this context
-  }, []); // Empty dependency array
-
-  // --- Premium Typing Effect (useEffect) ---
-  useEffect(() => {
-    const currentFullText = roles[currentRole];
-    const typingSpeed = isDeleting ? 30 : 80;
-
-    let timer: NodeJS.Timeout;
-
-    if (!isDeleting && charIndex < currentFullText.length) {
-      timer = setTimeout(() => {
-        setDisplayText(currentFullText.substring(0, charIndex + 1));
-        setCharIndex(charIndex + 1);
-      }, typingSpeed);
-    } else if (!isDeleting && charIndex === currentFullText.length) {
-      timer = setTimeout(() => setIsDeleting(true), 2500);
-    } else if (isDeleting && charIndex > 0) {
-      timer = setTimeout(() => {
-        setDisplayText(currentFullText.substring(0, charIndex - 1));
-        setCharIndex(charIndex - 1);
-      }, typingSpeed);
-    } else if (isDeleting && charIndex === 0) {
-      setIsDeleting(false);
-      setCurrentRole((prev) => (prev + 1) % roles.length);
+    if (!reduce) {
+      host.addEventListener('pointermove', onMove, { passive: true });
+      host.addEventListener('pointerleave', onLeave, { passive: true });
+      raf = requestAnimationFrame(loop);
     }
 
-    return () => clearTimeout(timer);
-  }, [charIndex, isDeleting, currentRole]);
+    return () => {
+      cancelAnimationFrame(raf);
+      ro.disconnect();
+      io.disconnect();
+      host.removeEventListener('pointermove', onMove);
+      host.removeEventListener('pointerleave', onLeave);
+    };
+  }, []);
 
   return (
-    // [FIX] Changed <section> to <div> to match opening tag
-    <div
-  id="about"
-  ref={containerRef}
-  className="relative min-h-screen overflow-hidden bg-gradient-to-br from-background via-background to-primary/5 p-4 md:p-8"
->
-      {/* Canvas Background */}
-      <canvas
-        ref={canvasRef}
-        className="absolute inset-0 z-0"
-        style={{
-          background:
-            "radial-gradient(circle at 20% 30%, rgba(59, 130, 246, 0.08), transparent 50%)",
-        }}
-      />
+    <div aria-hidden="true" className={`pointer-events-none absolute inset-0 ${className}`}>
+      <span ref={probeA} className="hidden text-primary" />
+      <span ref={probeB} className="hidden text-chart-2" />
+      <canvas ref={canvasRef} className="h-full w-full" />
+    </div>
+  );
+}
 
-      {/* GSAP Mouse-following Spotlight */}
-      <div
-        ref={spotlightRef}
-        className="absolute top-0 left-0 w-80 h-80 lg:w-96 lg:h-96 rounded-full opacity-20 blur-3xl z-0 pointer-events-none"
-        style={{
-          background:
-            "radial-gradient(circle, rgba(59, 130, 246, 0.7), transparent 70%)",
-        }}
-      />
 
-      {/* [FIX] Added missing closing </div> for this container */}
-      <div className="max-w-6xl mx-auto relative z-10">
-        {" "}
-        {/* Ensure content is above canvas */}
-        {/* Title Section */}
+/* ---------------- Data (source: CV; test-case figure from the HotelPK project report) ---------------- */
+const roles = ['AI Engineer', 'Data Scientist', 'Full-Stack Developer (MERN & Next.js)', 'Technical Instructor'];
+
+const expertise = [
+  'AI Agents & Generative AI Engineering',
+  'Full Stack Development (MERN & Next.js)',
+  'Machine Learning, Deep Learning & Computer Vision',
+  'Data Science & Analytics',
+  'Python Engineering',
+  'Cloud Technologies',
+];
+
+const languages = ['English', 'Urdu', 'Sindhi'];
+
+const pillars = [
+  {
+    icon: Hammer,
+    title: 'Build',
+    text: 'Python machine learning, computer vision and LLM/agent workflows (LangChain, RAG), alongside MERN and Next.js applications.',
+    tint: 'from-chart-1/10 to-chart-2/10',
+  },
+  {
+    icon: Presentation,
+    title: 'Teach',
+    text: 'AI, data science and AI web development instructor at NAVTTC, with practical, project-based sessions.',
+    tint: 'from-chart-2/10 to-chart-3/10',
+  },
+  {
+    icon: Globe2,
+    title: 'Publish',
+    text: 'Founder of CodeWithZohaib, a free bilingual programming platform with English explanations and Roman Urdu analogies.',
+    tint: 'from-chart-3/10 to-chart-4/10',
+  },
+];
+
+const stats = [
+  { icon: BookOpen, value: 25, suffix: '+', label: 'Free learning tracks', sub: 'CodeWithZohaib' },
+  { icon: Layers, value: 1300, suffix: '+', label: 'Lessons', sub: 'CodeWithZohaib' },
+  { icon: GraduationCap, value: 3, suffix: '', label: 'Teaching roles', sub: 'NAVTTC' },
+  { icon: CheckCircle2, value: 38, suffix: '/38', label: 'Test cases passing', sub: 'HotelPK' },
+];
+
+/* ---------------- Small pieces ---------------- */
+function TypedRole() {
+  const reduce = useReducedMotion();
+  const [role, setRole] = React.useState(0);
+  const [n, setN] = React.useState(0);
+  const [del, setDel] = React.useState(false);
+
+  React.useEffect(() => {
+    if (reduce) return;
+    const full = roles[role];
+    let t: ReturnType<typeof setTimeout>;
+    if (!del && n < full.length) t = setTimeout(() => setN(n + 1), 70);
+    else if (!del) t = setTimeout(() => setDel(true), 2200);
+    else if (n > 0) t = setTimeout(() => setN(n - 1), 28);
+    else { setDel(false); setRole((role + 1) % roles.length); }
+    return () => clearTimeout(t);
+  }, [n, del, role, reduce]);
+
+  if (reduce) {
+    return <p className="text-lg text-muted-foreground">{roles.join(' · ')}</p>;
+  }
+  return (
+    <p className="min-h-[1.75rem] text-lg text-primary font-medium" aria-label={roles.join(', ')}>
+      <span aria-hidden="true">
+        {roles[role].slice(0, n)}
+        <span className="ml-0.5 inline-block h-5 w-0.5 translate-y-1 animate-pulse bg-primary" />
+      </span>
+    </p>
+  );
+}
+
+function Counter({ value, suffix }: { value: number; suffix: string }) {
+  const ref = React.useRef<HTMLSpanElement>(null);
+  const inView = useInView(ref, { once: true, margin: '-40px' });
+  const reduce = useReducedMotion();
+  React.useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (reduce || !inView) { if (reduce) el.textContent = value.toLocaleString('en-US') + suffix; return; }
+    const c = animate(0, value, {
+      duration: 1.6,
+      ease: 'easeOut',
+      onUpdate: (v) => { el.textContent = Math.round(v).toLocaleString('en-US') + suffix; },
+    });
+    return () => c.stop();
+  }, [inView, reduce, value, suffix]);
+  return <span ref={ref}>0{suffix}</span>;
+}
+
+const rise = (reduce: boolean | null, delay = 0) =>
+  reduce
+    ? {}
+    : {
+        initial: { opacity: 0, y: 24 },
+        whileInView: { opacity: 1, y: 0 },
+        viewport: { once: true, margin: '-60px' },
+        transition: { duration: 0.6, delay, ease: 'easeOut' as const },
+      };
+
+/* ---------------- Section ---------------- */
+export function About() {
+  const reduce = useReducedMotion();
+  const gx = useMotionValue(-999);
+  const gy = useMotionValue(-999);
+  const [hover, setHover] = React.useState(false);
+
+  const onMove = (e: React.PointerEvent<HTMLElement>) => {
+    if (reduce || e.pointerType === 'touch') return;
+    const r = e.currentTarget.getBoundingClientRect();
+    gx.set(e.clientX - r.left);
+    gy.set(e.clientY - r.top);
+  };
+
+  const nameWords = ['Zohaib', 'Ali', 'Dayo'];
+
+  return (
+    <section
+      id="about"
+      onPointerMove={onMove}
+      onPointerEnter={() => setHover(true)}
+      onPointerLeave={() => setHover(false)}
+      className="relative overflow-hidden bg-gradient-to-br from-background via-background to-primary/5 px-4 py-20 md:px-8 md:py-32"
+    >
+      <AmbientNetwork className="opacity-60" />
+      {!reduce && (
         <motion.div
-          ref={titleRef} // [FIX] Apply the ref
-          variants={animationVariants.fadeInUp} // [FIX] Use defined variants
-          initial="hidden"
-          animate={titleInView ? "visible" : "hidden"} // [FIX] Use inView state
-          className="text-center mb-16 pt-16" // Added padding-top
-        >
-          <h2
-            className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4"
-            style={{ fontFamily: "var(--font-display)" }}
-          >
+          aria-hidden="true"
+          style={{ x: gx, y: gy }}
+          animate={{ opacity: hover ? 0.2 : 0 }}
+          transition={{ duration: 0.3 }}
+          className="pointer-events-none absolute left-0 top-0 -ml-48 -mt-48 hidden h-96 w-96 rounded-full bg-primary blur-3xl md:block"
+        />
+      )}
+
+      <div className="relative mx-auto max-w-7xl">
+        <motion.div {...rise(reduce)} className="mb-16 text-center">
+          <h2 className="mb-4 text-4xl font-bold md:text-5xl lg:text-6xl" style={{ fontFamily: 'var(--font-display)' }}>
             About <span className="gradient-text-primary">Me</span>
           </h2>
-          <div className="h-1 w-24 bg-gradient-to-r from-primary to-chart-2 mx-auto rounded-full" />
+          <div className="mx-auto h-1 w-24 rounded-full bg-gradient-to-r from-primary to-chart-2" />
         </motion.div>
-        {/* Summary & Expertise Grid */}
-        <div
-          // [FIX] Removed summaryRef, as AnimatedCard components handle their own animation
-          className="grid lg:grid-cols-2 gap-8 items-start mb-20"
-        >
-          {/* Left Card */}
-          {/* [FIX] Use the new AnimatedCard component */}
-          <AnimatedCard delay={0.1}>
-            <motion.div
-              whileHover={{ y: -4 }}
-              className="relative group h-full" // Added h-full
-            >
-              <Card className="p-6 bg-white/70 backdrop-blur-sm border border-slate-200/60 shadow-sm hover:shadow-md transition-all duration-300 h-full">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 bg-blue-100 rounded-lg">
-                    <Cpu className="w-5 h-5 text-blue-600" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-slate-800">
-                    Professional Summary
-                  </h3>
+
+        {/* Intro + side cards */}
+        <div className="mb-16 grid items-start gap-6 lg:grid-cols-5">
+          <motion.div {...rise(reduce, 0.05)} className="lg:col-span-3">
+            <Card className="relative h-full overflow-hidden p-6 md:p-10 glass-morphism bg-gradient-to-br from-chart-1/10 to-chart-3/10">
+              <motion.span
+                aria-hidden="true"
+                initial={reduce ? false : { scaleX: 0 }}
+                whileInView={{ scaleX: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 1, ease: 'easeOut' }}
+                style={{ transformOrigin: 'left' }}
+                className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-primary via-chart-2 to-chart-3"
+              />
+              <p className="mb-2 text-muted-foreground">Assalam O Alaikum, I&apos;m</p>
+              <h3 className="mb-3 text-4xl font-bold md:text-5xl" style={{ fontFamily: 'var(--font-display)' }}>
+                {nameWords.map((w, i) => (
+                  <span key={w} className="mr-3 inline-block overflow-hidden align-bottom">
+                    <motion.span
+                      className="inline-block"
+                      initial={reduce ? false : { y: '110%' }}
+                      whileInView={{ y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.7, delay: 0.1 + i * 0.12, ease: [0.22, 1, 0.36, 1] }}
+                    >
+                      {w}
+                    </motion.span>
+                  </span>
+                ))}
+              </h3>
+              <TypedRole />
+
+              <div className="mt-6 max-w-prose space-y-4 leading-relaxed text-muted-foreground">
+                <p>
+                  I&apos;m a BS Information Technology student at Sindh Madressatul Islam University (2022–2026), focused on AI and machine learning.
+                  I build Python machine learning, computer vision and LLM/agent workflows with LangChain and RAG, and ship MERN and Next.js applications.
+                </p>
+                <p>
+                  I also teach: AI, data science and AI web development at NAVTTC, and through CodeWithZohaib, the free bilingual programming platform I founded.
+                </p>
+                <p className="font-medium text-foreground">
+                  I&apos;m looking for a role where I can apply AI and full-stack engineering to real problems.
+                </p>
+              </div>
+
+              <ul className="mt-6 flex flex-wrap gap-2 text-sm">
+                <li className="inline-flex items-center gap-1.5 rounded-md border border-primary/20 bg-primary/10 px-3 py-1">
+                  <MapPin className="h-3.5 w-3.5 text-primary" /> Karachi, Pakistan
+                </li>
+                <li className="inline-flex items-center gap-1.5 rounded-md border border-primary/20 bg-primary/10 px-3 py-1">
+                  <GraduationCap className="h-3.5 w-3.5 text-primary" /> BS IT, SMIU
+                </li>
+              </ul>
+            </Card>
+          </motion.div>
+
+          <div className="space-y-6 lg:col-span-2">
+            <motion.div {...rise(reduce, 0.15)}>
+              <Card className="p-6 glass-morphism hover-elevate bg-gradient-to-br from-chart-2/10 to-chart-4/10">
+                <div className="mb-4 flex items-center gap-3">
+                  <div className="rounded-lg border border-primary/20 bg-primary/10 p-2"><Brain className="h-5 w-5 text-primary" /></div>
+                  <h4 className="text-lg font-semibold" style={{ fontFamily: 'var(--font-display)' }}>Core expertise</h4>
                 </div>
-                <div className="space-y-4 text-slate-600 leading-relaxed">
-                  <h3>
-                    <b className="text-slate-800">Assalam O Alaikum</b>
-                  </h3>
-                  <p>
-                    I&apos;m{" "}
-                    <strong className="text-slate-800">Zohaib Ali Dayo</strong>{" "}
-                    - a dedicated Information Technology specialist with
-                    comprehensive expertise in transforming complex challenges
-                    into innovative technical solutions.
-                  </p>
+                <ul className="space-y-2.5">
+                  {expertise.map((s, i) => (
+                    <motion.li
+                      key={s}
+                      initial={reduce ? false : { opacity: 0, x: -12 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.4, delay: 0.1 + i * 0.07 }}
+                      className="flex items-start gap-3 text-sm"
+                    >
+                      <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" aria-hidden="true" />
+                      <span>{s}</span>
+                    </motion.li>
+                  ))}
+                </ul>
+              </Card>
+            </motion.div>
 
-                  <p>
-                    I have a proven track record of developing intelligent AI
-                    systems, building scalable web applications, and creating
-                    data-driven solutions that enhance operational efficiency,
-                    drive innovation, and deliver measurable business impact.
-                  </p>
-
-                  <p className="text-slate-700 font-medium">
-                    I am seeking a challenging role where I can leverage my
-                    technical expertise to solve complex problems and contribute
-                    to organizational success through innovative technology
-                    solutions.
-                  </p>
+            <motion.div {...rise(reduce, 0.25)}>
+              <Card className="p-6 glass-morphism hover-elevate bg-gradient-to-br from-chart-3/10 to-chart-1/10">
+                <div className="mb-4 flex items-center gap-3">
+                  <div className="rounded-lg border border-primary/20 bg-primary/10 p-2"><Rocket className="h-5 w-5 text-primary" /></div>
+                  <h4 className="text-lg font-semibold" style={{ fontFamily: 'var(--font-display)' }}>Languages</h4>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {languages.map((l) => (
+                    <span key={l} className="rounded-md border border-primary/20 bg-primary/10 px-3 py-1.5 text-sm font-medium">
+                      {l} <span className="text-muted-foreground">· Proficient</span>
+                    </span>
+                  ))}
                 </div>
               </Card>
             </motion.div>
-          </AnimatedCard>
-
-          {/* Right Cards */}
-          <div className="space-y-6">
-            {/* Expertise Card */}
-            <AnimatedCard delay={0.2}>
-              <motion.div whileHover={{ y: -4 }} className="relative group">
-                <Card className="p-6 bg-white/70 backdrop-blur-sm border border-slate-200/60 shadow-sm hover:shadow-md transition-all duration-300">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="p-2 bg-emerald-100 rounded-lg">
-                      <Brain className="w-5 h-5 text-emerald-600" />
-                    </div>
-                    <h4 className="text-lg font-semibold text-slate-800">
-                      Core Expertise
-                    </h4>
-                  </div>
-                  <motion.ul
-                    variants={animationVariants.staggerContainer} // [FIX] Use defined variants
-                    initial="hidden"
-                    animate="visible" // Animate this list once parent card is visible
-                    className="space-y-2"
-                  >
-                    {[
-                      "AI Agents & Generative AI Engineering",
-                      "Full Stack Development (MERN Stack)",
-                      "Machine Learning & Deep Learning",
-                      "Data Science & Analytics",
-                      "Python Engineering",
-                      "Cloud Technologies",
-                    ].map((skill) => (
-                      <motion.li
-                        key={skill}
-                        variants={animationVariants.staggerItem} // [FIX] Use defined variants
-                        className="flex items-center gap-3 group/item"
-                      >
-                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                        <span className="text-slate-600 text-sm group-hover/item:text-slate-800 transition-colors">
-                          {skill}
-                        </span>
-                      </motion.li>
-                    ))}
-                  </motion.ul>
-                </Card>
-              </motion.div>
-            </AnimatedCard>
-
-            {/* Languages Card */}
-            <AnimatedCard delay={0.3}>
-              <motion.div whileHover={{ y: -4 }} className="relative group">
-                <Card className="p-6 bg-white/70 backdrop-blur-sm border border-slate-200/60 shadow-sm hover:shadow-md transition-all duration-300">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="p-2 bg-purple-100 rounded-lg">
-                      <Rocket className="w-5 h-5 text-purple-600" />
-                    </div>
-                    <h4 className="text-lg font-semibold text-slate-800">
-                      Languages
-                    </h4>
-                  </div>
-                  <motion.div
-                    variants={animationVariants.staggerContainer} // [FIX] Use defined variants
-                    initial="hidden"
-                    animate="visible"
-                    className="flex flex-wrap gap-2"
-                  >
-                    {[
-                      "Sindhi - Proficient",
-                      "English - Proficient",
-                      "Urdu - Proficient",
-                    ].map((lang) => (
-                      <motion.span
-                        key={lang}
-                        variants={animationVariants.staggerItem} // [FIX] Use defined variants
-                        whileHover={{ scale: 1.02 }}
-                        className="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 text-sm font-medium border border-slate-200 hover:bg-slate-200 transition-all duration-200"
-                      >
-                        {lang}
-                      </motion.span>
-                    ))}
-                  </motion.div>
-                </Card>
-              </motion.div>
-            </AnimatedCard>
           </div>
         </div>
-        {/* Key Achievements Section */}
-        <div className="pb-20">
-          {" "}
-          {/* Added padding-bottom */}
-          <motion.h3
-            ref={statsTitleRef} // [FIX] Use the correct ref
-            variants={animationVariants.fadeInUp} // [FIX] Use defined variants
-            initial="hidden"
-            animate={statsInView ? "visible" : "hidden"} // [FIX] Use correct inView state
-            className="text-2xl md:text-3xl font-bold text-center mb-12 text-slate-800"
-          >
-            <span
-              className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4"
-              style={{ fontFamily: "var(--font-display)" }}
-            >
-              Key <span className="gradient-text-primary">Achievements</span>
-            </span>
-            <div className="h-1 w-24 bg-gradient-to-r from-primary to-chart-2 mx-auto rounded-full" />
-          </motion.h3>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {stats.map((stat, index) => {
-              const Icon = stat.icon;
-              return (
-                // [FIX] Use AnimatedCard component for staggered animation
-                <AnimatedCard key={stat.label} delay={index * 0.1}>
-                  <motion.div
-                    whileHover={{ y: -4 }}
-                    className="relative group h-full"
-                  >
-                    <Card
-                      className={`p-6 text-center bg-white/70 backdrop-blur-sm border ${stat.borderColor} shadow-sm hover:shadow-md transition-all duration-300 h-full`}
-                    >
-                      <div
-                        className={`inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br ${stat.bgColor} mb-4`}
-                      >
-                        <Icon className="w-6 h-6 text-slate-700" />
-                      </div>
 
-                      <div
-                        className={`text-2xl md:text-3xl font-bold mb-2 ${stat.color}`}
-                      >
-                        {/* [FIX] Use new AnimatedStatValue component */}
-                        <AnimatedStatValue value={stat.value} />
-                      </div>
+        {/* Pillars */}
+        <div className="mb-20 grid gap-6 md:grid-cols-3">
+          {pillars.map((p, i) => (
+            <motion.div key={p.title} {...rise(reduce, i * 0.1)}>
+              <Card className={`group h-full p-6 glass-morphism hover-elevate active-elevate-2 bg-gradient-to-br ${p.tint}`}>
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg border border-primary/20 bg-primary/10 transition-transform group-hover:scale-110 group-hover:-rotate-6">
+                  <p.icon className="h-6 w-6 text-primary" />
+                </div>
+                <h4 className="mb-2 text-xl font-bold" style={{ fontFamily: 'var(--font-display)' }}>{p.title}</h4>
+                <p className="leading-relaxed text-muted-foreground">{p.text}</p>
+              </Card>
+            </motion.div>
+          ))}
+        </div>
 
-                      <div className="text-xs text-slate-500 mb-1 uppercase tracking-wider">
-                        {stat.increase}
-                      </div>
-
-                      <div className="text-sm font-medium text-slate-700">
-                        {stat.label}
-                      </div>
-                    </Card>
-                  </motion.div>
-                </AnimatedCard>
-              );
-            })}
-          </div>
+        {/* Stats */}
+        <motion.div {...rise(reduce)} className="mb-10 text-center">
+          <h3 className="mb-3 text-3xl font-bold md:text-4xl" style={{ fontFamily: 'var(--font-display)' }}>
+            Key <span className="gradient-text-primary">Achievements</span>
+          </h3>
+          <div className="mx-auto h-1 w-24 rounded-full bg-gradient-to-r from-primary to-chart-2" />
+        </motion.div>
+        <div className="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-4">
+          {stats.map((s, i) => (
+            <motion.div key={s.label} {...rise(reduce, i * 0.08)}>
+              <Card className="h-full p-5 text-center glass-morphism hover-elevate bg-gradient-to-br from-chart-1/10 to-chart-2/10 sm:p-6">
+                <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10">
+                  <s.icon className="h-6 w-6 text-primary" />
+                </div>
+                <div className="mb-1 text-3xl font-bold text-primary md:text-4xl" style={{ fontFamily: 'var(--font-display)' }}>
+                  <Counter value={s.value} suffix={s.suffix} />
+                </div>
+                <div className="text-sm font-medium">{s.label}</div>
+                <div className="text-xs text-muted-foreground">{s.sub}</div>
+              </Card>
+            </motion.div>
+          ))}
         </div>
       </div>
-    </div>
+    </section>
   );
 }
