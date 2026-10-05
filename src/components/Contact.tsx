@@ -53,8 +53,8 @@ const socialLinks = [
   {
     icon: ExternalLink,
     label: 'Academy',
-    value: 'codewithzuhaib.vercel.app',
-    link: 'https://codewithzuhaib.vercel.app',
+    value: 'codewithzuhaib',
+    link: 'https://dotzohaibedutech.vercel.app/',
     color: 'hover:text-chart-3',
   },
 ];
